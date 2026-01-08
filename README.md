@@ -1,17 +1,6 @@
-<div>
-   <div style="display:flex; justify-content: center; align-items: center; gap:16px; ">
-      <div>
-         <img src="resources/Brace.svg" alt="brace logo" style="height:50px;" />
-      </div>
-      <div>
-         <span style="font-size:xxx-large">Brace</span>
-      </div>
-   </div>
-   <div>
-      <h2>Blazor component state simplified</h2>
-   </div>
-   <hr/>
-</div>
+# Brace 
+
+<img src="resources/Brace.svg" alt="brace logo" style="height:100px;" /> 
 
 A Blazor library that simplifies parameter state management by abstracting away the complexity of lifecycle methods and change detection.
 
