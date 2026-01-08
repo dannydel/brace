@@ -1,0 +1,66 @@
+@page "/demo"
+
+<h2>ComponentState Demo</h2>
+
+<div class="parent-component-container">
+    <h3>Parent Component</h3>
+    <div class="parent-component--section">
+        <p>Parent's Count Value: @_count</p>
+        <button @onclick="IncrementFromParent">Increment from Parent</button>
+    </div>
+    <div class="parent-component--section">
+        <label>Parent's IsActive Value (Should not affect child)</label>
+        <input type="checkbox" checked="@_isActive" @onchanged="@OnIsActiveChanged" />
+    </div>
+</div>
+
+<div style="border: 2px solid green; padding: 20px; margin: 20px;">
+    <ExampleStatefulComponent
+        @bind-Count="@_count"
+        Name="@_name"
+        NameChanged="@OnNameChanged"
+        IsActive="@_isActive"
+        IsActiveChanged="@OnIsActiveChanged" />
+</div>
+
+<style>
+    .parent-component-container{
+        border: 2px solid blue;
+        border-radius:4px;
+        padding:24px;
+        margin:24px;
+    }
+    
+    .parent-component--section{
+        margin-top:16px;
+    }
+</style>
+
+@code {
+    private int _count = 0;
+    private string? _name = "John Doe";
+    private bool _isActive = true;
+
+    private void IncrementFromParent()
+    {
+        _count++;
+    }
+
+    private void OnCountChanged(int newCount)
+    {
+        _count = newCount;
+        Console.WriteLine($"Parent received count change: {newCount}");
+    }
+
+    private void OnNameChanged(string? newName)
+    {
+        _name = newName;
+        Console.WriteLine($"Parent received name change: {newName}");
+    }
+
+    private void OnIsActiveChanged(bool newIsActive)
+    {
+        _isActive = newIsActive;
+        Console.WriteLine($"Parent received isActive change: {newIsActive}");
+    }
+}

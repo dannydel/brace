@@ -1,0 +1,27 @@
+@inherits StatefulComponentBase
+
+<div>
+    <h3>Simple Example</h3>
+    <p>Current Value: @_valueState.Value</p>
+</div>
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    private ParameterState<string?> _valueState = null!;
+
+    public SimpleExample()
+    {
+        using var registerScope = CreateComponentParameterStateScope();
+
+        // Minimal configuration - just register with parameter and event callback
+        _valueState = registerScope
+            .RegisterParameter<string?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+    }
+}

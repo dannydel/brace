@@ -1,0 +1,79 @@
+@inherits StatefulComponentBase
+
+<div class="example-component">
+    <h3>Example Stateful Component</h3>
+
+    <p>Name: @_nameState.Value</p>
+    <p>Count: @_countState.Value</p>
+    <p>Is Active: @_isActiveState.Value</p>
+
+    <input value="@_nameState.Value" @onchange="(e) => NameChanged.InvokeAsync(e.Value?.ToString())" />
+    <button @onclick="IncrementCount">Increment Count</button>
+    <label>
+        <input type="checkbox" checked="@_isActiveState.Value" @onchange="(e) => IsActiveChanged.InvokeAsync((bool)(e.Value ?? false))" />
+        Is Active
+    </label>
+</div>
+
+@code {
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> NameChanged { get; set; }
+
+    [Parameter]
+    public int Count { get; set; }
+
+    [Parameter]
+    public EventCallback<int> CountChanged { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsActiveChanged { get; set; }
+
+    private ParameterState<string?> _nameState = null!;
+    private ParameterState<int> _countState = null!;
+    private ParameterState<bool> _isActiveState = null!;
+
+    public ExampleStatefulComponent()
+    {
+        using var registerScope = CreateComponentParameterStateScope();
+
+        _nameState = registerScope
+            .RegisterParameter<string?>(nameof(Name))
+            .WithParameter(() => Name)
+            .WithEventCallback(() => NameChanged)
+            .WithChangeHandler(OnNameChangedAsync);
+
+        _countState = registerScope
+            .RegisterParameter<int>(nameof(Count))
+            .WithParameter(() => Count)
+            .WithEventCallback(() => CountChanged)
+            .WithChangeHandler((oldValue, newValue) =>
+            {
+                Console.WriteLine($"Count changed from {oldValue} to {newValue}");
+            });
+
+        _isActiveState = registerScope
+            .RegisterParameter<bool>(nameof(IsActive))
+            .WithParameter(() => IsActive)
+            .WithEventCallback(() => IsActiveChanged);
+    }
+
+    private async Task OnNameChangedAsync(string? oldName, string? newName)
+    {
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task IncrementCount()
+    {
+        // Example of manually updating a parameter and triggering the EventCallback
+        await CountChanged.InvokeAsync(_countState.Value + 1);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

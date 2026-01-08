@@ -1,0 +1,36 @@
+﻿@page "/"
+@using Brace.Examples
+
+<PageTitle>Examples of Component State!</PageTitle>
+
+<div class="card">
+    <div class="card-body">
+        <p>This demo aims to show how you can utilize the new StatefulBaseComponent and keep values in sync without
+            causing other side-effects from within the component.</p>
+        <p>
+            In the child component:
+            - User interactions (typing, clicking, etc.) should invoke the
+            EventCallback to notify the parent
+            - The change handlers (like OnNameChangedAsync) are for observing when the
+            parent sends new values down
+
+            In the parent component:
+            - Handle the EventCallback
+            - Update your own state
+            - Let Blazor pass the updated value back to the child
+
+            This creates the proper two-way data flow that Blazor expects.
+        </p>
+    </div>
+</div>
+
+<ParentDemo></ParentDemo>
+
+
+
+
+
+
+@code{
+    
+}

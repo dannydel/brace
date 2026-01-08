@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Build outputs
+bin/
+obj/
+out/
+debug/
+release/
+
+# ASP.NET/Blazor generated files
+# Ignore scoped CSS generated artifacts
+**/*.rz.scp.css
+# Razor component backup files
+*.cshtml.__backup
+*.razor.__backup
+
+# IDE settings
+# Visual Studio
+.vs/
+
+# JetBrains Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+
+# LibMan restored libraries
+wwwroot/lib/
+
+# NPM cache/artifacts
+.pnpm-debug.log*
+.cache/
