@@ -2,6 +2,8 @@
 
 A Blazor library that simplifies parameter state management by abstracting away the complexity of lifecycle methods and change detection.
 
+This was heavily influenced by [MudBlazor](https://www.mudblazor.com) and how they are handling their state within components.
+
 ## The Problem
 
 In Blazor components, updating parameter values outside of lifecycle methods can cause unexpected side effects:
