@@ -341,4 +341,4 @@ dotnet build src/Brace.csproj
 
 ## License
 
-[Your License Here]
+This project is licensed under MIT. See `LICENSE` for details.
