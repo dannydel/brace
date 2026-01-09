@@ -1,17 +1,15 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Xunit;
 
 namespace Brace.Tests;
 
-public class StatefulComponentTests
+public class StatefulComponentTests : BunitContext
 {
     [Fact]
     public void ParameterState_ShouldCaptureInitialValue()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponent>(parameters => parameters
+        var component = Render<TestComponent>(parameters => parameters
             .Add(p => p.Name, "John"));
 
         // Assert
@@ -22,8 +20,7 @@ public class StatefulComponentTests
     public void ParameterState_ShouldUpdateWhenParameterChanges()
     {
         // Arrange
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponent>(parameters => parameters
+        var component = Render<TestComponent>(parameters => parameters
             .Add(p => p.Name, "John"));
 
         // Act
@@ -39,8 +36,7 @@ public class StatefulComponentTests
     {
         // Arrange
         var changeCount = 0;
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithChangeHandler>(parameters => parameters
+        var component = Render<TestComponentWithChangeHandler>(parameters => parameters
             .Add(p => p.Name, "John")
             .Add(p => p.OnChange, () => changeCount++));
 
@@ -59,8 +55,7 @@ public class StatefulComponentTests
     {
         // Arrange
         var changeCount = 0;
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithChangeHandler>(parameters => parameters
+        var component = Render<TestComponentWithChangeHandler>(parameters => parameters
             .Add(p => p.Name, "John")
             .Add(p => p.OnChange, () => changeCount++));
 
@@ -73,16 +68,15 @@ public class StatefulComponentTests
     }
 
     [Fact]
-    public async Task ParameterState_ShouldInvokeEventCallbackWhenValueChanges()
+    public void ParameterState_ShouldInvokeEventCallbackWhenValueChanges()
     {
         // Arrange
         var callbackInvoked = false;
         var newValue = string.Empty;
 
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponent>(parameters => parameters
+        var component = Render<TestComponent>(parameters => parameters
             .Add(p => p.Name, "John")
-            .Add(p => p.NameChanged, EventCallback.Factory.Create<string>(this, (value) =>
+            .Add(p => p.NameChanged, EventCallback.Factory.Create<string?>(this, (value) =>
             {
                 callbackInvoked = true;
                 newValue = value;
@@ -101,8 +95,7 @@ public class StatefulComponentTests
     public void ParameterState_ShouldHandleMultipleParameters()
     {
         // Arrange
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentMultipleParams>(parameters => parameters
+        var component = Render<TestComponentMultipleParams>(parameters => parameters
             .Add(p => p.Name, "John")
             .Add(p => p.Age, 30)
             .Add(p => p.IsActive, true));
@@ -118,8 +111,7 @@ public class StatefulComponentTests
     {
         // Arrange
         var changeCount = 0;
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithCustomComparer>(parameters => parameters
+        var component = Render<TestComponentWithCustomComparer>(parameters => parameters
             .Add(p => p.Name, "John")
             .Add(p => p.OnChange, () => changeCount++));
 
@@ -135,9 +127,8 @@ public class StatefulComponentTests
     public void ParameterState_ShouldHandleNullValues()
     {
         // Arrange
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponent>(parameters => parameters
-            .Add(p => p.Name, (string?)null));
+        var component = Render<TestComponent>(parameters => parameters
+            .Add(p => p.Name, null));
 
         // Assert
         Assert.Null(component.Instance.GetNameStateValue());
@@ -155,8 +146,7 @@ public class StatefulComponentTests
     {
         // Arrange
         var asyncChangeHandlerInvoked = false;
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithAsyncChangeHandler>(parameters => parameters
+        var component = Render<TestComponentWithAsyncChangeHandler>(parameters => parameters
             .Add(p => p.Name, "John")
             .Add(p => p.OnAsyncChange, async () =>
             {
@@ -186,7 +176,7 @@ public class TestComponent : StatefulComponentBase
     [Parameter]
     public EventCallback<string?> NameChanged { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
+    private readonly ParameterState<string?> _nameState;
 
     public TestComponent()
     {
@@ -209,22 +199,18 @@ public class TestComponentWithChangeHandler : StatefulComponentBase
     [Parameter]
     public Action? OnChange { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
-
     public TestComponentWithChangeHandler()
     {
         using var registerScope = CreateComponentParameterStateScope();
 
-        _nameState = registerScope
+        _ = registerScope
             .RegisterParameter<string?>(nameof(Name))
             .WithParameter(() => Name)
-            .WithChangeHandler((oldValue, newValue) =>
+            .WithChangeHandler((_, _) =>
             {
                 OnChange?.Invoke();
             });
     }
-
-    public string? GetNameStateValue() => _nameState.Value;
 }
 
 public class TestComponentWithAsyncChangeHandler : StatefulComponentBase
@@ -235,7 +221,7 @@ public class TestComponentWithAsyncChangeHandler : StatefulComponentBase
     [Parameter]
     public Func<Task>? OnAsyncChange { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
+    private readonly ParameterState<string?> _nameState;
 
     public TestComponentWithAsyncChangeHandler()
     {
@@ -244,7 +230,7 @@ public class TestComponentWithAsyncChangeHandler : StatefulComponentBase
         _nameState = registerScope
             .RegisterParameter<string?>(nameof(Name))
             .WithParameter(() => Name)
-            .WithChangeHandler(async (oldValue, newValue) =>
+            .WithChangeHandler(async (_, _) =>
             {
                 if (OnAsyncChange != null)
                 {
@@ -267,9 +253,9 @@ public class TestComponentMultipleParams : StatefulComponentBase
     [Parameter]
     public bool IsActive { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
-    private ParameterState<int> _ageState = null!;
-    private ParameterState<bool> _isActiveState = null!;
+    private readonly ParameterState<string?> _nameState;
+    private readonly ParameterState<int> _ageState;
+    private readonly ParameterState<bool> _isActiveState;
 
     public TestComponentMultipleParams()
     {
@@ -301,21 +287,17 @@ public class TestComponentWithCustomComparer : StatefulComponentBase
     [Parameter]
     public Action? OnChange { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
-
     public TestComponentWithCustomComparer()
     {
         using var registerScope = CreateComponentParameterStateScope();
 
-        _nameState = registerScope
+        _ = registerScope
             .RegisterParameter<string?>(nameof(Name))
             .WithParameter(() => Name)
             .WithComparer(StringComparer.OrdinalIgnoreCase)
-            .WithChangeHandler((oldValue, newValue) =>
+            .WithChangeHandler((_, _) =>
             {
                 OnChange?.Invoke();
             });
     }
-
-    public string? GetNameStateValue() => _nameState.Value;
 }

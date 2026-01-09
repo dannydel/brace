@@ -6,13 +6,8 @@ namespace Brace;
 /// </summary>
 internal class ParameterStateContainer
 {
-    private IList<IParameterState> _parameterStates;
+    private readonly List<IParameterState> _parameterStates = [];
 
-    public ParameterStateContainer()
-    {
-        _parameterStates = new List<IParameterState>();
-    }
-    
     /// <summary>
     /// Registers a parameter state with the container.
     /// </summary>

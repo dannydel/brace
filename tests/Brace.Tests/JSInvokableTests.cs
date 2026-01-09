@@ -1,7 +1,7 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Xunit;
+// ReSharper disable AccessToModifiedClosure
 
 namespace Brace.Tests;
 
@@ -9,28 +9,27 @@ namespace Brace.Tests;
 /// Tests for handling parameter updates from JavaScript interop (JSInvokable methods)
 /// These tests demonstrate the proper pattern for JSInvokable methods that update parameters
 /// </summary>
-public class JSInvokableTests
+public class JSInvokableTests : BunitContext
 {
     [Fact]
     public void JSInvokable_ShouldWorkWithTwoWayBinding()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentMessage = "Initial";
 
         IRenderedComponent<TestComponentWithJSInvokable>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokable>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokable>(parameters => parameters
             .Add(p => p.Message, currentMessage)
-            .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (newMsg) =>
+            .Add(p => p.MessageChanged,
+                EventCallback.Factory.Create<string?>(this, newMsg =>
             {
                 // Simulate parent updating its state and re-rendering child
                 currentMessage = newMsg ?? string.Empty;
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Message, currentMessage)
-                        .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (msg) => currentMessage = msg ?? string.Empty)));
-                }
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Message, currentMessage)
+                    .Add(cp => cp.MessageChanged, 
+                        EventCallback.Factory.Create<string?>(this, msg => 
+                            currentMessage = msg ?? string.Empty)));
             })));
         renderedComponent = component;
 
@@ -45,22 +44,20 @@ public class JSInvokableTests
     public async Task JSInvokableAsync_ShouldWorkWithTwoWayBinding()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentMessage = "Initial";
 
         IRenderedComponent<TestComponentWithJSInvokable>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokable>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokable>(parameters => parameters
             .Add(p => p.Message, currentMessage)
             .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, async (newMsg) =>
             {
                 currentMessage = newMsg ?? string.Empty;
                 await Task.Delay(1);
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Message, currentMessage)
-                        .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (msg) => currentMessage = msg ?? string.Empty)));
-                }
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Message, currentMessage)
+                    .Add(cp => cp.MessageChanged, 
+                        EventCallback.Factory.Create<string?>(this, msg
+                        => currentMessage = msg ?? string.Empty)));
             })));
         renderedComponent = component;
 
@@ -78,11 +75,11 @@ public class JSInvokableTests
         // Arrange
         var callbackInvoked = false;
         var callbackValue = string.Empty;
-
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithJSInvokable>(parameters => parameters
+        
+        var component = Render<TestComponentWithJSInvokable>(parameters => parameters
             .Add(p => p.Message, "Initial")
-            .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (value) =>
+            .Add(p => p.MessageChanged, 
+                EventCallback.Factory.Create<string?>(this, value =>
             {
                 callbackInvoked = true;
                 callbackValue = value ?? string.Empty;
@@ -100,21 +97,20 @@ public class JSInvokableTests
     public void JSInvokable_ShouldHandleComplexObjects()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentPerson = new Person { Id = 1, Name = "John", Age = 30 };
 
         IRenderedComponent<TestComponentWithJSInvokableComplexObject>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokableComplexObject>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokableComplexObject>(parameters => parameters
             .Add(p => p.Person, currentPerson)
-            .Add(p => p.PersonChanged, EventCallback.Factory.Create<Person?>(this, (newPerson) =>
+            .Add(p => p.PersonChanged, 
+                EventCallback.Factory.Create<Person?>(this, newPerson =>
             {
-                currentPerson = newPerson!;
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Person, currentPerson)
-                        .Add(p => p.PersonChanged, EventCallback.Factory.Create<Person?>(this, (p) => currentPerson = p!)));
-                }
+                currentPerson = newPerson;
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Person, currentPerson)
+                    .Add(cp => cp.PersonChanged, 
+                        EventCallback.Factory.Create<Person?>(this, person 
+                            => currentPerson = person)));
             })));
         renderedComponent = component;
 
@@ -131,21 +127,21 @@ public class JSInvokableTests
     public void JSInvokable_ShouldHandleListUpdates()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentList = new List<string> { "Item1", "Item2" };
 
         IRenderedComponent<TestComponentWithJSInvokableList>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokableList>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokableList>(parameters => parameters
             .Add(p => p.Items, currentList)
-            .Add(p => p.ItemsChanged, EventCallback.Factory.Create<List<string>?>(this, (newList) =>
+            .Add(p => p.ItemsChanged, 
+                EventCallback.Factory.Create<List<string>?>(this, newList =>
             {
-                currentList = newList ?? new List<string>();
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Items, currentList)
-                        .Add(p => p.ItemsChanged, EventCallback.Factory.Create<List<string>?>(this, (l) => currentList = l ?? new List<string>())));
-                }
+                currentList = newList ?? [];
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Items, currentList)
+                    .Add(cp => cp.ItemsChanged, 
+                        EventCallback.Factory.Create<List<string>?>(this, l 
+                            => currentList = l ?? [])));
+
             })));
         renderedComponent = component;
 
@@ -155,28 +151,28 @@ public class JSInvokableTests
 
         // Assert
         Assert.Equal(4, component.Instance.GetItemsState()?.Count);
-        Assert.Contains("Item3", component.Instance.GetItemsState()!);
+        Assert.Contains("Item3", component.Instance.GetItemsState() ?? []);
     }
 
     [Fact]
     public void JSInvokable_ShouldHandleNullValues()
     {
         // Arrange
-        using var ctx = new TestContext();
         string? currentMessage = "Initial";
 
         IRenderedComponent<TestComponentWithJSInvokable>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokable>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokable>(
+            parameters => parameters
             .Add(p => p.Message, currentMessage)
-            .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (newMsg) =>
+            .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(
+                this, newMsg =>
             {
                 currentMessage = newMsg;
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Message, currentMessage)
-                        .Add(p => p.MessageChanged, EventCallback.Factory.Create<string?>(this, (msg) => currentMessage = msg)));
-                }
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Message, currentMessage)
+                    .Add(cp => cp.MessageChanged, 
+                        EventCallback.Factory.Create<string?>(this, msg 
+                            => currentMessage = msg)));
             })));
         renderedComponent = component;
 
@@ -191,12 +187,11 @@ public class JSInvokableTests
     public async Task JSInvokable_ShouldHandleMultipleParametersSimultaneously()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentName = "John";
         var currentAge = 30;
         var currentIsActive = false;
 
-        var component = ctx.Render<TestComponentWithMultipleJSInvokables>(parameters => parameters
+        var component = Render<TestComponentWithMultipleJSInvokables>(parameters => parameters
             .Add(p => p.Name, currentName)
             .Add(p => p.Age, currentAge)
             .Add(p => p.IsActive, currentIsActive)
@@ -223,21 +218,19 @@ public class JSInvokableTests
     public void JSInvokable_ShouldWorkWithDictionaries()
     {
         // Arrange
-        using var ctx = new TestContext();
         var currentDict = new Dictionary<string, int> { ["Key1"] = 1 };
 
         IRenderedComponent<TestComponentWithJSInvokableDictionary>? renderedComponent = null;
-        var component = ctx.Render<TestComponentWithJSInvokableDictionary>(parameters => parameters
+        var component = Render<TestComponentWithJSInvokableDictionary>(parameters => parameters
             .Add(p => p.Data, currentDict)
             .Add(p => p.DataChanged, EventCallback.Factory.Create<Dictionary<string, int>?>(this, (newDict) =>
             {
                 currentDict = newDict ?? new Dictionary<string, int>();
-                if (renderedComponent != null)
-                {
-                    renderedComponent.Render(parameters => parameters
-                        .Add(p => p.Data, currentDict)
-                        .Add(p => p.DataChanged, EventCallback.Factory.Create<Dictionary<string, int>?>(this, (d) => currentDict = d ?? new Dictionary<string, int>())));
-                }
+                renderedComponent?.Render(p => p
+                    .Add(cp => cp.Data, currentDict)
+                    .Add(cp => cp.DataChanged, 
+                        EventCallback.Factory.Create<Dictionary<string, int>?>(this, d
+                            => currentDict = d ?? new Dictionary<string, int>())));
             })));
         renderedComponent = component;
 
@@ -261,7 +254,7 @@ public class TestComponentWithJSInvokable : StatefulComponentBase
     [Parameter]
     public EventCallback<string?> MessageChanged { get; set; }
 
-    private ParameterState<string?> _messageState = null!;
+    private readonly ParameterState<string?> _messageState;
 
     public TestComponentWithJSInvokable()
     {
@@ -299,7 +292,7 @@ public class TestComponentWithJSInvokableComplexObject : StatefulComponentBase
     [Parameter]
     public EventCallback<Person?> PersonChanged { get; set; }
 
-    private ParameterState<Person?> _personState = null!;
+    private readonly ParameterState<Person?> _personState;
 
     public TestComponentWithJSInvokableComplexObject()
     {
@@ -329,7 +322,7 @@ public class TestComponentWithJSInvokableList : StatefulComponentBase
     [Parameter]
     public EventCallback<List<string>?> ItemsChanged { get; set; }
 
-    private ParameterState<List<string>?> _itemsState = null!;
+    private readonly ParameterState<List<string>?> _itemsState;
 
     public TestComponentWithJSInvokableList()
     {
@@ -371,9 +364,9 @@ public class TestComponentWithMultipleJSInvokables : StatefulComponentBase
     [Parameter]
     public EventCallback<bool> IsActiveChanged { get; set; }
 
-    private ParameterState<string?> _nameState = null!;
-    private ParameterState<int> _ageState = null!;
-    private ParameterState<bool> _isActiveState = null!;
+    private readonly ParameterState<string?> _nameState;
+    private readonly ParameterState<int> _ageState;
+    private readonly ParameterState<bool> _isActiveState;
 
     public TestComponentWithMultipleJSInvokables()
     {
@@ -422,7 +415,7 @@ public class TestComponentWithJSInvokableDictionary : StatefulComponentBase
     [Parameter]
     public EventCallback<Dictionary<string, int>?> DataChanged { get; set; }
 
-    private ParameterState<Dictionary<string, int>?> _dataState = null!;
+    private readonly ParameterState<Dictionary<string, int>?> _dataState;
 
     public TestComponentWithJSInvokableDictionary()
     {

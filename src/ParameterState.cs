@@ -27,6 +27,7 @@ public class ParameterState<T> : IParameterState
     /// <summary>
     /// Gets the name of the parameter.
     /// </summary>
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public string ParameterName { get; }
 
     /// <summary>

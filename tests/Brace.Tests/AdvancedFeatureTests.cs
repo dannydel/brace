@@ -1,14 +1,13 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using System.Diagnostics;
-using Xunit;
 
 namespace Brace.Tests;
 
 /// <summary>
 /// Tests for advanced features including performance, enumerables, and complex objects
 /// </summary>
-public class AdvancedFeatureTests
+public class AdvancedFeatureTests : BunitContext
 {
     #region Performance Tests
 
@@ -16,11 +15,10 @@ public class AdvancedFeatureTests
     public void PerformanceTest_ShouldHandleManyParametersEfficiently()
     {
         // Arrange
-        using var ctx = new TestContext();
         var stopwatch = Stopwatch.StartNew();
 
         // Act - Create component with 10 parameters
-        var component = ctx.Render<ComponentWithManyParameters>(parameters => parameters
+        Render<ComponentWithManyParameters>(parameters => parameters
             .Add(p => p.Param1, "Value1")
             .Add(p => p.Param2, "Value2")
             .Add(p => p.Param3, "Value3")
@@ -43,8 +41,7 @@ public class AdvancedFeatureTests
     public void PerformanceTest_ShouldHandleMultipleUpdatesEfficiently()
     {
         // Arrange
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithString>(parameters => parameters
+        var component = Render<TestComponentWithString>(parameters => parameters
             .Add(p => p.Value, "Initial"));
 
         var stopwatch = Stopwatch.StartNew();
@@ -72,9 +69,8 @@ public class AdvancedFeatureTests
     public void ListParameter_ShouldCaptureInitialList()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
         var initialList = new List<string> { "Item1", "Item2", "Item3" };
-        var component = ctx.Render<TestComponentWithList>(parameters => parameters
+        var component = Render<TestComponentWithList>(parameters => parameters
             .Add(p => p.Items, initialList));
 
         // Assert
@@ -88,9 +84,8 @@ public class AdvancedFeatureTests
     {
         // Arrange
         var changeDetected = false;
-        using var ctx = new TestContext();
         var initialList = new List<string> { "Item1" };
-        var component = ctx.Render<TestComponentWithList>(parameters => parameters
+        var component = Render<TestComponentWithList>(parameters => parameters
             .Add(p => p.Items, initialList)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -109,9 +104,8 @@ public class AdvancedFeatureTests
     {
         // Arrange
         var changeDetected = false;
-        using var ctx = new TestContext();
         var initialList = new List<string> { "Item1", "Item2" };
-        var component = ctx.Render<TestComponentWithList>(parameters => parameters
+        var component = Render<TestComponentWithList>(parameters => parameters
             .Add(p => p.Items, initialList)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -127,9 +121,8 @@ public class AdvancedFeatureTests
     public void ListParameter_ShouldHandleEmptyList()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
         var emptyList = new List<string>();
-        var component = ctx.Render<TestComponentWithList>(parameters => parameters
+        var component = Render<TestComponentWithList>(parameters => parameters
             .Add(p => p.Items, emptyList));
 
         // Assert
@@ -141,8 +134,7 @@ public class AdvancedFeatureTests
     public void ListParameter_ShouldHandleNullList()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
-        var component = ctx.Render<TestComponentWithList>(parameters => parameters
+        var component = Render<TestComponentWithList>(parameters => parameters
             .Add(p => p.Items, (List<string>?)null));
 
         // Assert
@@ -157,13 +149,12 @@ public class AdvancedFeatureTests
     public void DictionaryParameter_ShouldCaptureInitialDictionary()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
         var initialDict = new Dictionary<string, int>
         {
             ["Key1"] = 1,
             ["Key2"] = 2
         };
-        var component = ctx.Render<TestComponentWithDictionary>(parameters => parameters
+        var component = Render<TestComponentWithDictionary>(parameters => parameters
             .Add(p => p.Data, initialDict));
 
         // Assert
@@ -177,9 +168,8 @@ public class AdvancedFeatureTests
     {
         // Arrange
         var changeDetected = false;
-        using var ctx = new TestContext();
         var initialDict = new Dictionary<string, int> { ["Key1"] = 1 };
-        var component = ctx.Render<TestComponentWithDictionary>(parameters => parameters
+        var component = Render<TestComponentWithDictionary>(parameters => parameters
             .Add(p => p.Data, initialDict)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -201,7 +191,6 @@ public class AdvancedFeatureTests
     public void ComplexObjectParameter_ShouldCaptureInitialObject()
     {
         // Arrange & Act
-        using var ctx = new TestContext();
         var person = new Person
         {
             Id = 1,
@@ -217,7 +206,7 @@ public class AdvancedFeatureTests
             Tags = new List<string> { "developer", "architect" }
         };
 
-        var component = ctx.Render<TestComponentWithComplexObject>(parameters => parameters
+        var component = Render<TestComponentWithComplexObject>(parameters => parameters
             .Add(p => p.Person, person));
 
         // Assert
@@ -233,10 +222,9 @@ public class AdvancedFeatureTests
     public void ComplexObjectParameter_ShouldDetectObjectChange()
     {
         // Arrange
-        var changeDetected = false;
-        using var ctx = new TestContext();
+        var changeDetected = false; 
         var person1 = new Person { Id = 1, Name = "John" };
-        var component = ctx.Render<TestComponentWithComplexObject>(parameters => parameters
+        var component = Render<TestComponentWithComplexObject>(parameters => parameters
             .Add(p => p.Person, person1)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -254,10 +242,9 @@ public class AdvancedFeatureTests
     public void ComplexObjectParameter_ShouldUseCustomComparer()
     {
         // Arrange
-        var changeDetected = false;
-        using var ctx = new TestContext();
+        var changeDetected = false; 
         var person1 = new Person { Id = 1, Name = "John", Age = 30 };
-        var component = ctx.Render<TestComponentWithComplexObjectAndComparer>(parameters => parameters
+        var component = Render<TestComponentWithComplexObjectAndComparer>(parameters => parameters
             .Add(p => p.Person, person1)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -275,14 +262,13 @@ public class AdvancedFeatureTests
     {
         // Arrange
         var changeDetected = false;
-        using var ctx = new TestContext();
         var person1 = new Person
         {
             Id = 1,
             Name = "John",
             Address = new Address { City = "Boston" }
         };
-        var component = ctx.Render<TestComponentWithComplexObject>(parameters => parameters
+        var component = Render<TestComponentWithComplexObject>(parameters => parameters
             .Add(p => p.Person, person1)
             .Add(p => p.OnChange, () => changeDetected = true));
 
@@ -311,7 +297,7 @@ public class TestComponentWithString : StatefulComponentBase
     [Parameter]
     public string? Value { get; set; }
 
-    private ParameterState<string?> _valueState = null!;
+    private readonly ParameterState<string?> _valueState;
 
     public TestComponentWithString()
     {
@@ -336,17 +322,17 @@ public class ComponentWithManyParameters : StatefulComponentBase
     [Parameter] public string? Param8 { get; set; }
     [Parameter] public string? Param9 { get; set; }
     [Parameter] public string? Param10 { get; set; }
-
-    private ParameterState<string?> _param1State = null!;
-    private ParameterState<string?> _param2State = null!;
-    private ParameterState<string?> _param3State = null!;
-    private ParameterState<string?> _param4State = null!;
-    private ParameterState<string?> _param5State = null!;
-    private ParameterState<string?> _param6State = null!;
-    private ParameterState<string?> _param7State = null!;
-    private ParameterState<string?> _param8State = null!;
-    private ParameterState<string?> _param9State = null!;
-    private ParameterState<string?> _param10State = null!;
+    
+    private ParameterState<string?> _param1State;
+    private ParameterState<string?> _param2State;
+    private ParameterState<string?> _param3State;
+    private ParameterState<string?> _param4State;
+    private ParameterState<string?> _param5State;
+    private ParameterState<string?> _param6State;
+    private ParameterState<string?> _param7State;
+    private ParameterState<string?> _param8State;
+    private ParameterState<string?> _param9State;
+    private ParameterState<string?> _param10State;
 
     public ComponentWithManyParameters()
     {
@@ -372,7 +358,7 @@ public class TestComponentWithList : StatefulComponentBase
     [Parameter]
     public Action? OnChange { get; set; }
 
-    private ParameterState<List<string>?> _itemsState = null!;
+    private readonly ParameterState<List<string>?> _itemsState;
 
     public TestComponentWithList()
     {
@@ -380,7 +366,7 @@ public class TestComponentWithList : StatefulComponentBase
         _itemsState = registerScope
             .RegisterParameter<List<string>?>(nameof(Items))
             .WithParameter(() => Items)
-            .WithChangeHandler((oldValue, newValue) => OnChange?.Invoke());
+            .WithChangeHandler((_, _) => OnChange?.Invoke());
     }
 
     public List<string>? GetItemsState() => _itemsState.Value;
@@ -394,7 +380,7 @@ public class TestComponentWithDictionary : StatefulComponentBase
     [Parameter]
     public Action? OnChange { get; set; }
 
-    private ParameterState<Dictionary<string, int>?> _dataState = null!;
+    private readonly ParameterState<Dictionary<string, int>?> _dataState;
 
     public TestComponentWithDictionary()
     {
@@ -402,7 +388,7 @@ public class TestComponentWithDictionary : StatefulComponentBase
         _dataState = registerScope
             .RegisterParameter<Dictionary<string, int>?>(nameof(Data))
             .WithParameter(() => Data)
-            .WithChangeHandler((oldValue, newValue) => OnChange?.Invoke());
+            .WithChangeHandler((_, _) => OnChange?.Invoke());
     }
 
     public Dictionary<string, int>? GetDataState() => _dataState.Value;
@@ -424,7 +410,7 @@ public class TestComponentWithComplexObject : StatefulComponentBase
         _personState = registerScope
             .RegisterParameter<Person?>(nameof(Person))
             .WithParameter(() => Person)
-            .WithChangeHandler((oldValue, newValue) => OnChange?.Invoke());
+            .WithChangeHandler((_, _) => OnChange?.Invoke());
     }
 
     public Person? GetPersonState() => _personState.Value;
@@ -438,7 +424,7 @@ public class TestComponentWithComplexObjectAndComparer : StatefulComponentBase
     [Parameter]
     public Action? OnChange { get; set; }
 
-    private ParameterState<Person?> _personState = null!;
+    private readonly ParameterState<Person?> _personState;
 
     public TestComponentWithComplexObjectAndComparer()
     {
@@ -447,10 +433,8 @@ public class TestComponentWithComplexObjectAndComparer : StatefulComponentBase
             .RegisterParameter<Person?>(nameof(Person))
             .WithParameter(() => Person)
             .WithComparer(new PersonIdComparer())
-            .WithChangeHandler((oldValue, newValue) => OnChange?.Invoke());
+            .WithChangeHandler((_, _) => OnChange?.Invoke());
     }
-
-    public Person? GetPersonState() => _personState.Value;
 }
 
 #endregion
@@ -470,7 +454,7 @@ public class Person
 public class Address
 {
     public string? Street { get; set; }
-    public string? City { get; set; }
+    public string? City { get; init; }
     public string? State { get; set; }
     public string? ZipCode { get; set; }
 }
