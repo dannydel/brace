@@ -344,3 +344,10 @@ dotnet build src/Brace.csproj
 ## License
 
 This project is licensed under MIT. See `LICENSE` for details.
+
+
+## References
+
+The Noun Project for project logo [flame icon](https://thenounproject.com/search/icons/?q=flame&qv=8071222)
+@anotherlab - For helping with creation of logo.
+[MudBlazor] - For inspiration for project.
