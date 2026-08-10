@@ -61,7 +61,8 @@ public class ParameterState<T> : IParameterState
     }
 
     /// <summary>
-    /// Updates the state value if it has changed, invoking callbacks and change handlers.
+    /// Updates the state value from the registered component parameter if it has changed.
+    /// Parent-driven changes invoke change handlers but do not invoke the two-way binding callback.
     /// </summary>
     public async Task UpdateAsync()
     {
@@ -89,16 +90,27 @@ public class ParameterState<T> : IParameterState
         var oldValue = _value;
         _value = newValue;
 
-        // Invoke sync change handler
-        _syncChangeHandler?.Invoke(oldValue, newValue);
+        await InvokeChangeHandlersAsync(oldValue, newValue);
+    }
 
-        // Invoke async change handler
-        if (_asyncChangeHandler != null)
+    /// <summary>
+    /// Sets the state value for a change originating inside the component.
+    /// Change handlers and the configured two-way binding callback are invoked when the value changes.
+    /// </summary>
+    /// <param name="newValue">The new state value.</param>
+    public async Task SetValueAsync(T? newValue)
+    {
+        if (_comparer.Equals(_value, newValue))
         {
-            await _asyncChangeHandler(oldValue, newValue);
+            return;
         }
 
-        // Invoke EventCallback for two-way binding
+        var oldValue = _value;
+        _value = newValue;
+        _isInitialized = true;
+
+        await InvokeChangeHandlersAsync(oldValue, newValue);
+
         if (_eventCallbackGetter != null)
         {
             var eventCallback = _eventCallbackGetter();
@@ -106,6 +118,16 @@ public class ParameterState<T> : IParameterState
             {
                 await eventCallback.InvokeAsync(newValue);
             }
+        }
+    }
+
+    private async Task InvokeChangeHandlersAsync(T? oldValue, T? newValue)
+    {
+        _syncChangeHandler?.Invoke(oldValue, newValue);
+
+        if (_asyncChangeHandler != null)
+        {
+            await _asyncChangeHandler(oldValue, newValue);
         }
     }
 }
