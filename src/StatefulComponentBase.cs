@@ -21,32 +21,11 @@ public abstract class StatefulComponentBase : ComponentBase
     }
 
     /// <summary>
-    /// Overrides SetParametersAsync to automatically synchronize registered parameter states.
-    /// </summary>
-    public override async Task SetParametersAsync(ParameterView parameters)
-    {
-        await base.SetParametersAsync(parameters);
-        await _container.OnSetParametersAsync();
-    }
-
-    /// <summary>
-    /// Overrides OnInitializedAsync to perform initial parameter state synchronization.
-    /// </summary>
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await _container.OnInitializedAsync();
-    }
-
-    /// <summary>
-    /// Overrides OnParametersSetAsync to synchronize parameter states after parameters are set.
+    /// Overrides OnParametersSetAsync to synchronize parameter states before rendering.
     /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         await _container.OnParametersSetAsync();
-        
-        // Required to ensure values render when needed.
-        await InvokeAsync(StateHasChanged);
     }
 }

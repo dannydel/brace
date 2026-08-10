@@ -17,23 +17,7 @@ internal class ParameterStateContainer
     }
 
     /// <summary>
-    /// Called during OnInitialized/OnInitializedAsync to perform initial synchronization.
-    /// </summary>
-    internal async Task OnInitializedAsync()
-    {
-        await UpdateAllStatesAsync();
-    }
-
-    /// <summary>
-    /// Called during SetParametersAsync to synchronize parameter changes.
-    /// </summary>
-    internal async Task OnSetParametersAsync()
-    {
-        await UpdateAllStatesAsync();
-    }
-
-    /// <summary>
-    /// Called during OnParametersSet/OnParametersSetAsync to handle post-parameter updates.
+    /// Called during OnParametersSetAsync to synchronize parameter state before rendering.
     /// </summary>
     internal async Task OnParametersSetAsync()
     {
@@ -48,19 +32,6 @@ internal class ParameterStateContainer
         foreach (var state in _parameterStates)
         {
             await state.UpdateAsync();
-            // // Use reflection to call UpdateAsync on the generic ParameterState<T>
-            // var updateMethod = state.GetType().GetMethod("UpdateAsync",
-            //     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            //
-            // if (updateMethod != null)
-            // {
-            //     var task = updateMethod.Invoke(state, null) as Task;
-            //     if (task != null)
-            //     {
-            //         await task;
-            //     }
-            // }
-
         }
     }
 }
