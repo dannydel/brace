@@ -286,7 +286,7 @@ Holds the current state of a parameter.
 **Properties:**
 - `Value` - Gets the current parameter value
 - `ParameterName` - Gets the name of the parameter
-- `SetValueAsync(T value)` - Sets a value from inside the component and invokes configured change handlers and EventCallback
+- `SetValueAsync(T? value)` - (Method) Sets a value from inside the component and invokes configured change handlers and EventCallback
 
 ## How It Works
 
