@@ -1,5 +1,6 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Brace.Tests;
 
@@ -164,6 +165,47 @@ public class StatefulComponentTests : BunitContext
         // Assert
         Assert.True(asyncChangeHandlerInvoked);
     }
+
+    [Fact]
+    public void ParameterState_ShouldEvaluateComputedGetterOncePerParameterSet()
+    {
+        var component = Render<TestComponentWithComputedParameter>(parameters => parameters
+            .Add(p => p.Value, "Initial"));
+
+        Assert.Equal(1, component.Instance.GetterInvocationCount);
+
+        component.Render(parameters => parameters
+            .Add(p => p.Value, "Updated"));
+
+        Assert.Equal(2, component.Instance.GetterInvocationCount);
+    }
+
+    [Fact]
+    public void StatefulComponent_ShouldRenderOncePerParameterSet()
+    {
+        var component = Render<TestComponentWithRenderCount>(parameters => parameters
+            .Add(p => p.Value, "Initial"));
+        var initialRenderCount = component.Instance.RenderCount;
+
+        component.Render(parameters => parameters
+            .Add(p => p.Value, "Updated"));
+
+        Assert.Equal(initialRenderCount + 1, component.Instance.RenderCount);
+    }
+
+    [Fact]
+    public void StatefulComponent_ShouldNotQueueRenderForUntrackedCascadingParameter()
+    {
+        var parent = Render<TestCascadingParent>(parameters => parameters
+            .Add(p => p.Value, "en-US"));
+        var child = parent.FindComponent<TestComponentWithRenderCount>();
+        var initialRenderCount = child.Instance.RenderCount;
+
+        parent.Render(parameters => parameters
+            .Add(p => p.Value, "fr-FR"));
+
+        Assert.Equal(initialRenderCount + 1, child.Instance.RenderCount);
+    }
 }
 
 // Test Components
@@ -277,6 +319,69 @@ public class TestComponentMultipleParams : StatefulComponentBase
     public string? GetNameStateValue() => _nameState.Value;
     public int GetAgeStateValue() => _ageState.Value;
     public bool GetIsActiveStateValue() => _isActiveState.Value;
+}
+
+public class TestComponentWithComputedParameter : StatefulComponentBase
+{
+    [Parameter]
+    public string? Value { get; set; }
+
+    public int GetterInvocationCount { get; private set; }
+
+    public TestComponentWithComputedParameter()
+    {
+        using var registerScope = CreateComponentParameterStateScope();
+
+        _ = registerScope
+            .RegisterParameter<object>(nameof(Value))
+            .WithParameter(GetComputedValue);
+    }
+
+    private object GetComputedValue()
+    {
+        GetterInvocationCount++;
+        return new { Value };
+    }
+}
+
+public class TestComponentWithRenderCount : StatefulComponentBase
+{
+    [Parameter]
+    public string? Value { get; set; }
+
+    [CascadingParameter]
+    public string? Culture { get; set; }
+
+    public int RenderCount { get; private set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        builder.AddContent(0, Value);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        RenderCount++;
+    }
+}
+
+public class TestCascadingParent : ComponentBase
+{
+    [Parameter]
+    public string? Value { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<CascadingValue<string?>>(0);
+        builder.AddAttribute(1, nameof(CascadingValue<string?>.Value), Value);
+        builder.AddAttribute(2, nameof(CascadingValue<string?>.ChildContent), (RenderFragment)(childBuilder =>
+        {
+            childBuilder.OpenComponent<TestComponentWithRenderCount>(0);
+            childBuilder.AddAttribute(1, nameof(TestComponentWithRenderCount.Value), "stable");
+            childBuilder.CloseComponent();
+        }));
+        builder.CloseComponent();
+    }
 }
 
 public class TestComponentWithCustomComparer : StatefulComponentBase
