@@ -93,7 +93,7 @@ _valueState = registerScope
     .RegisterParameter<int>(nameof(Count))
     .WithParameter(() => Count)
     .WithEventCallback(() => CountChanged);
-// EventCallback is only invoked when Count actually changes
+// EventCallback is invoked only for local changes made through SetValueAsync
 ```
 
 ### Custom Comparers
@@ -134,14 +134,16 @@ _countState = registerScope
 
 ### Two-Way Binding
 
-Automatically invoke EventCallbacks for two-way binding:
+Configure an EventCallback for local changes made through SetValueAsync:
 
 ```csharp
 _valueState = registerScope
     .RegisterParameter<string?>(nameof(Value))
     .WithParameter(() => Value)
     .WithEventCallback(() => ValueChanged);
-// ValueChanged is automatically invoked when Value changes
+
+private Task UpdateValueAsync(string? value) => _valueState.SetValueAsync(value);
+// Parent-driven parameter updates invoke change handlers but do not echo ValueChanged
 ```
 
 ### Multiple Parameters
@@ -240,10 +242,7 @@ public MyComponent()
         }
     }
 
-    private async Task IncrementAge()
-    {
-        await AgeChanged.InvokeAsync(_ageState.Value + 1);
-    }
+    private Task IncrementAge() => _ageState.SetValueAsync(_ageState.Value + 1);
 
     private Task LogUserUpdateAsync(string message)
     {
@@ -287,6 +286,7 @@ Holds the current state of a parameter.
 **Properties:**
 - `Value` - Gets the current parameter value
 - `ParameterName` - Gets the name of the parameter
+- `SetValueAsync(T? value)` - (Method) Sets a value from inside the component and invokes configured change handlers and EventCallback
 
 ## How It Works
 
@@ -294,11 +294,14 @@ Holds the current state of a parameter.
 2. **Initial Capture**: The library immediately captures the initial parameter value
 3. **Lifecycle Integration**: The base class automatically hooks into `SetParametersAsync`, `OnInitialized`, and `OnParametersSet`
 4. **Change Detection**: On each lifecycle method, the library checks if parameter values have changed
-5. **Automatic Updates**: When a change is detected:
+5. **Automatic Updates**: When a parent-driven change is detected:
    - The state value is updated
    - Sync change handlers are invoked
    - Async change handlers are awaited
-   - EventCallbacks are invoked for two-way binding
+6. **Internal Updates**: When a component calls `SetValueAsync`:
+   - The state value is updated
+   - Sync and async change handlers are invoked
+   - The EventCallback is invoked for two-way binding
 
 ## Project Structure
 

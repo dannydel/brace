@@ -28,7 +28,7 @@ public class ParameterStateBuilder<T>
 
     /// <summary>
     /// Specifies the EventCallback getter for two-way binding support.
-    /// The EventCallback will be automatically invoked when the parameter value changes.
+    /// The EventCallback is invoked when the component changes the value through SetValueAsync.
     /// </summary>
     /// <param name="eventCallbackGetter">A function that returns the EventCallback.</param>
     /// <returns>The builder for method chaining.</returns>

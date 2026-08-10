@@ -7,10 +7,10 @@
     <p>Count: @_countState.Value</p>
     <p>Is Active: @_isActiveState.Value</p>
 
-    <input value="@_nameState.Value" @onchange="(e) => NameChanged.InvokeAsync(e.Value?.ToString())" />
+    <input value="@_nameState.Value" @onchange="(e) => _nameState.SetValueAsync(e.Value?.ToString())" />
     <button @onclick="IncrementCount">Increment Count</button>
     <label>
-        <input type="checkbox" checked="@_isActiveState.Value" @onchange="(e) => IsActiveChanged.InvokeAsync((bool)(e.Value ?? false))" />
+        <input type="checkbox" checked="@_isActiveState.Value" @onchange="(e) => _isActiveState.SetValueAsync((bool)(e.Value ?? false))" />
         Is Active
     </label>
 </div>
@@ -71,8 +71,7 @@
 
     private async Task IncrementCount()
     {
-        // Example of manually updating a parameter and triggering the EventCallback
-        await CountChanged.InvokeAsync(_countState.Value + 1);
+        await _countState.SetValueAsync(_countState.Value + 1);
 
         await InvokeAsync(StateHasChanged);
     }

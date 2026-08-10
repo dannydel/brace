@@ -69,7 +69,7 @@ public class StatefulComponentTests : BunitContext
     }
 
     [Fact]
-    public void ParameterState_ShouldInvokeEventCallbackWhenValueChanges()
+    public void ParameterState_ShouldNotInvokeEventCallbackWhenParentValueChanges()
     {
         // Arrange
         var callbackInvoked = false;
@@ -88,8 +88,32 @@ public class StatefulComponentTests : BunitContext
             .Add(p => p.Name, "Jane"));
 
         // Assert
+        Assert.False(callbackInvoked);
+        Assert.Empty(newValue);
+    }
+
+    [Fact]
+    public async Task ParameterState_ShouldInvokeEventCallbackForInternalValueChanges()
+    {
+        // Arrange
+        var callbackInvoked = false;
+        var newValue = string.Empty;
+
+        var component = Render<TestComponent>(parameters => parameters
+            .Add(p => p.Name, "John")
+            .Add(p => p.NameChanged, EventCallback.Factory.Create<string?>(this, (value) =>
+            {
+                callbackInvoked = true;
+                newValue = value ?? string.Empty;
+            })));
+
+        // Act
+        await component.Instance.SetNameAsync("Jane");
+
+        // Assert
         Assert.True(callbackInvoked);
         Assert.Equal("Jane", newValue);
+        Assert.Equal("Jane", component.Instance.GetNameStateValue());
     }
 
     [Fact]
@@ -231,6 +255,7 @@ public class TestComponent : StatefulComponentBase
     }
 
     public string? GetNameStateValue() => _nameState.Value;
+    public Task SetNameAsync(string? value) => _nameState.SetValueAsync(value);
 }
 
 public class TestComponentWithChangeHandler : StatefulComponentBase
